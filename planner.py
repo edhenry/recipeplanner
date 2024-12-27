@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Load Recipe Data
-@st.cache
+@st.cache_data
 def load_recipes():
     return pd.DataFrame([
         {"Meal Name": "Chicken Shawarma", "Cuisine": "Mediterranean", "Protein": "Chicken", "Veggies": "Cucumber, Tomato", "Prep Time": 30, "Cook Type": "Stove Top", "Ingredients": "1 lb Chicken thighs, 2 tbsp Shawarma spices, 2 tbsp Olive oil, 1 whole Cucumber, 1 whole Tomato", "Instructions": "link1"},
