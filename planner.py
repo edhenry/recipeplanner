@@ -162,24 +162,54 @@ elif page == "Add Recipes":
         veggies = st.text_input("Veggies (comma-separated)")
         prep_time = st.number_input("Prep Time (minutes)", min_value=1, max_value=120, step=1)
         cook_type = st.selectbox("Cook Type", ["Stove Top", "Oven", "No Cook", "Grill", "Other"])
-        ingredients = st.text_area("Ingredients (quantity, unit, item - one per line)")
         instructions = st.text_input("Instructions (link or description)")
+
+        # Ingredients Section
+        st.write("### Ingredients")
+        num_ingredients = st.number_input("Number of Ingredients", min_value=1, max_value=20, step=1, value=1)
+
+        ingredient_data = []
+        for i in range(num_ingredients):
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                ingredient = st.text_input(f"Ingredient {i + 1}", key=f"ingredient_{i}")
+            with col2:
+                quantity = st.number_input(f"Quantity {i + 1}", min_value=0.0, step=0.1, key=f"quantity_{i}")
+            with col3:
+                unit = st.text_input(f"Unit {i + 1}", key=f"unit_{i}")
+            ingredient_data.append({"Ingredient": ingredient, "Quantity": quantity, "Unit": unit})
 
         # Submit button
         submitted = st.form_submit_button("Add Recipe")
 
     if submitted:
-        ingredients_list = ingredients.split("\n")
-        recipe = {
-            "Meal Name": meal_name,
-            "Cuisine": cuisine,
-            "Protein": protein,
-            "Veggies": veggies,
-            "Prep Time": prep_time,
-            "Cook Type": cook_type,
-            "Ingredients": ", ".join(ingredients_list),
-            "Instructions": instructions,
-        }
+        # Validate inputs
+        if not meal_name:
+            st.error("Meal Name is required.")
+        elif not any(ingredient["Ingredient"] for ingredient in ingredient_data):
+            st.error("At least one ingredient is required.")
+        else:
+            # Save to Recipe Database
+            recipe = {
+                "Meal Name": meal_name,
+                "Cuisine": cuisine,
+                "Protein": protein,
+                "Veggies": veggies,
+                "Prep Time": prep_time,
+                "Cook Type": cook_type,
+                "Instructions": instructions,
+            }
+            add_recipe_to_gsheet(sheet, recipe)
 
-        add_recipe_to_gsheet(sheet, recipe)
-        st.success(f"Recipe '{meal_name}' added successfully!")
+            # Save to Ingredients Database
+            worksheet = sheet.worksheet("Ingredients Database")
+            for ingredient in ingredient_data:
+                if ingredient["Ingredient"]:  # Only add non-empty ingredients
+                    worksheet.append_row([
+                        meal_name,  # Link to the Meal Name
+                        ingredient["Ingredient"],
+                        ingredient["Quantity"],
+                        ingredient["Unit"]
+                    ])
+
+            st.success(f"Recipe '{meal_name}' and its ingredients were added successfully!")
