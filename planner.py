@@ -46,7 +46,7 @@ st.write("## Filtered Recipes")
 if filtered_recipes.empty:
     st.write("No recipes match your criteria.")
 else:
-    st.dataframe(filtered_recipes)
+    st.dataframe(filtered_recipes[["Meal Name", "Cuisine", "Protein", "Cook Type", "Prep Time"]])
 
 # Assign Recipes to Days
 st.write("## Assign Recipes to Days")
