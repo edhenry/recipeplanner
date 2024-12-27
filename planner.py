@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Load Recipe Data
-@st.cache_data
+@st.cache
 def load_recipes():
     return pd.DataFrame([
         {"Meal Name": "Chicken Shawarma", "Cuisine": "Mediterranean", "Protein": "Chicken", "Veggies": "Cucumber, Tomato", "Prep Time": 30, "Cook Type": "Stove Top", "Ingredients": "1 lb Chicken thighs, 2 tbsp Shawarma spices, 2 tbsp Olive oil, 1 whole Cucumber, 1 whole Tomato", "Instructions": "link1"},
@@ -15,18 +15,34 @@ def load_recipes():
 # Sidebar Filters
 st.sidebar.header("Filter Recipes")
 recipes = load_recipes()
+
+# Dropdown for Cuisine, Protein, Cook Type
 cuisine_filter = st.sidebar.selectbox("Cuisine", ["Any"] + recipes["Cuisine"].unique().tolist())
 protein_filter = st.sidebar.selectbox("Protein", ["Any"] + recipes["Protein"].unique().tolist())
 cook_type_filter = st.sidebar.selectbox("Cook Type", ["Any"] + recipes["Cook Type"].unique().tolist())
-max_prep_time = st.sidebar.slider("Max Prep Time (minutes)", 0, 60, 30)
 
-# Filter Recipes
+# Dropdown for Prep Time Intervals
+prep_time_intervals = ["Any", "< 30 mins", "30-45 mins", "> 45 mins"]
+prep_time_filter = st.sidebar.selectbox("Prep Time", prep_time_intervals)
+
+# Function to Filter by Prep Time Interval
+def filter_by_prep_time(data, interval):
+    if interval == "< 30 mins":
+        return data[data["Prep Time"] < 30]
+    elif interval == "30-45 mins":
+        return data[(data["Prep Time"] >= 30) & (data["Prep Time"] <= 45)]
+    elif interval == "> 45 mins":
+        return data[data["Prep Time"] > 45]
+    else:  # "Any"
+        return data
+
+# Apply Filters
 filtered_recipes = recipes[
     ((recipes["Cuisine"] == cuisine_filter) | (cuisine_filter == "Any")) &
     ((recipes["Protein"] == protein_filter) | (protein_filter == "Any")) &
-    ((recipes["Cook Type"] == cook_type_filter) | (cook_type_filter == "Any")) &
-    (recipes["Prep Time"] <= max_prep_time)
+    ((recipes["Cook Type"] == cook_type_filter) | (cook_type_filter == "Any"))
 ]
+filtered_recipes = filter_by_prep_time(filtered_recipes, prep_time_filter)
 
 st.write("## Filtered Recipes")
 if filtered_recipes.empty:
