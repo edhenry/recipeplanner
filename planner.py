@@ -4,14 +4,18 @@ import pandas as pd
 # Load Recipe Data
 @st.cache
 def load_recipes():
-    return pd.DataFrame({
-        "Meal Name": ["Chicken Shawarma", "Beef Stir-Fry", "Vegetarian Enchiladas", "Greek Salad", "Pad Thai"],
-        "Cuisine": ["Mediterranean", "Asian", "Mexican", "Mediterranean", "Asian"],
-        "Protein": ["Chicken", "Beef", "Beans", "Chicken", "Tofu"],
-        "Prep Time": [30, 25, 40, 20, 35],
-        "Cook Type": ["Stove Top", "Stove Top", "Oven", "Stove Top", "Stove Top"],
-        "Instructions": ["link1", "link2", "link3", "link4", "link5"]
-    })
+    return pd.DataFrame([
+        {"Meal Name": "Chicken Shawarma", "Cuisine": "Mediterranean", "Protein": "Chicken", "Veggies": "Cucumber, Tomato", "Prep Time": 30, "Cook Type": "Stove Top", "Instructions": "link1"},
+        {"Meal Name": "Beef Stir-Fry", "Cuisine": "Asian", "Protein": "Beef", "Veggies": "Broccoli, Bell Pepper", "Prep Time": 25, "Cook Type": "Stove Top", "Instructions": "link2"},
+        {"Meal Name": "Vegetarian Enchiladas", "Cuisine": "Mexican", "Protein": "Beans", "Veggies": "Bell Pepper, Tomato", "Prep Time": 40, "Cook Type": "Oven", "Instructions": "link3"},
+        {"Meal Name": "Greek Salad with Chicken", "Cuisine": "Mediterranean", "Protein": "Chicken", "Veggies": "Cucumber, Tomato", "Prep Time": 20, "Cook Type": "No Cook", "Instructions": "link4"},
+        {"Meal Name": "Pad Thai", "Cuisine": "Asian", "Protein": "Tofu", "Veggies": "Carrot, Bean Sprouts", "Prep Time": 35, "Cook Type": "Stove Top", "Instructions": "link5"},
+        {"Meal Name": "Spaghetti Bolognese", "Cuisine": "Italian", "Protein": "Beef", "Veggies": "Carrot, Garlic", "Prep Time": 30, "Cook Type": "Stove Top", "Instructions": "link6"},
+        {"Meal Name": "Stuffed Bell Peppers", "Cuisine": "Mediterranean", "Protein": "Beef", "Veggies": "Bell Pepper, Tomato", "Prep Time": 45, "Cook Type": "Oven", "Instructions": "link7"},
+        {"Meal Name": "Taco Salad", "Cuisine": "Mexican", "Protein": "Chicken", "Veggies": "Lettuce, Tomato, Bell Pepper", "Prep Time": 20, "Cook Type": "No Cook", "Instructions": "link8"},
+        {"Meal Name": "Chickpea Curry", "Cuisine": "Indian", "Protein": "Chickpeas", "Veggies": "Spinach, Tomato", "Prep Time": 30, "Cook Type": "Stove Top", "Instructions": "link9"},
+        {"Meal Name": "Mediterranean Quinoa Salad", "Cuisine": "Mediterranean", "Protein": "Beans", "Veggies": "Cucumber, Tomato, Bell Pepper", "Prep Time": 25, "Cook Type": "No Cook", "Instructions": "link10"},
+    ])
 
 # Sidebar Filters
 st.sidebar.header("Filter Recipes")
@@ -35,14 +39,13 @@ if filtered_recipes.empty:
 else:
     st.dataframe(filtered_recipes)
 
-# Multi-Select for Drag-and-Drop Feel
+# Assign Recipes to Days
 st.write("## Assign Recipes to Days")
 days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 weekly_plan = {}
 
-# Create Multi-Select Dropdowns for Each Day
 for day in days:
-    selected_recipe = st.selectbox(f"{day}", ["None"] + filtered_recipes["Meal Name"].tolist())
+    selected_recipe = st.selectbox(f"Select a recipe for {day}", ["None"] + filtered_recipes["Meal Name"].tolist())
     weekly_plan[day] = selected_recipe
 
 # Display Final Weekly Plan
