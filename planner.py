@@ -90,26 +90,33 @@ def assign_recipes_to_days(filtered_recipes):
 
     # Dropdowns for each day
     for day in st.session_state["weekly_plan"]:
-        # Get the current selection
+        # Get the current selection for this day
         current_selection = st.session_state["weekly_plan"][day]
 
         # Include the current selection in the options even if it doesn't match the filters
         dropdown_options = ["None"] + filtered_recipes["Meal Name"].tolist()
-        if current_selection not in dropdown_options:
-            dropdown_options.append(current_selection)
+        if current_selection not in dropdown_options and current_selection != "None":
+            dropdown_options.append(current_selection)  # Add the current selection to the options
 
         # Create the dropdown
-        selected_recipe = st.selectbox(
-            f"Select a recipe for {day}",
-            options=dropdown_options,
-            index=dropdown_options.index(current_selection),
-            key=f"{day}_recipe"
-        )
+        try:
+            selected_recipe = st.selectbox(
+                f"Select a recipe for {day}",
+                options=dropdown_options,
+                index=dropdown_options.index(current_selection),  # Ensure the current selection remains selected
+                key=f"{day}_recipe"
+            )
+        except ValueError:
+            # Fallback to "None" if the selection somehow breaks
+            selected_recipe = "None"
+        
+        # Update the session state with the new selection
         st.session_state["weekly_plan"][day] = selected_recipe
 
     # Display the weekly plan
     st.write("### Your Weekly Plan")
     st.table(pd.DataFrame(list(st.session_state["weekly_plan"].items()), columns=["Day", "Meal"]))
+
 # Main app
 sheet = connect_to_gsheet()
 
