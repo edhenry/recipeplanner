@@ -27,6 +27,12 @@ def load_recipes(sheet):
     data = worksheet.get_all_records()
     return pd.DataFrame(data)
 
+# Load Ingredients Database from Google Sheet
+def load_ingredients_database(sheet):
+    worksheet = sheet.worksheet("Ingredients Database")  # Replace with the correct sheet name
+    data = worksheet.get_all_records()
+    return pd.DataFrame(data)
+
 # Add a new recipe to Google Sheet
 def add_recipe_to_gsheet(sheet, recipe):
     worksheet = sheet.worksheet("Recipe Database")
@@ -58,27 +64,15 @@ def filter_recipes(recipes, cuisine_filter, protein_filter, cook_type_filter, pr
 
     return filtered_recipes
 
-# Generate grocery list
-def generate_grocery_list(selected_recipes):
-    grocery_list = defaultdict(lambda: defaultdict(float))
+# Generate grocery list using Ingredients Database
+def generate_grocery_list_from_db(ingredients_db, selected_recipes):
+    # Filter ingredients for selected recipes
+    selected_ingredients = ingredients_db[ingredients_db["Meal Name"].isin(selected_recipes["Meal Name"])]
 
-    for ingredients in selected_recipes["Ingredients"]:
-        for ingredient in ingredients.split(", "):
-            parts = ingredient.split(" ", 2)
-            if len(parts) == 3:
-                quantity, unit, item = parts
-                try:
-                    quantity = float(quantity)
-                except ValueError:
-                    quantity = 0
-                grocery_list[item][unit] += quantity
+    # Aggregate ingredients by Ingredient and Unit
+    grocery_list = selected_ingredients.groupby(["Ingredient", "Unit"], as_index=False).agg({"Quantity": "sum"})
 
-    grocery_list_df = pd.DataFrame([
-        {"Ingredient": item, "Unit": unit, "Quantity": qty}
-        for item, units in grocery_list.items()
-        for unit, qty in units.items()
-    ])
-    return grocery_list_df
+    return grocery_list
 
 # Assign recipes to days with persistent selections
 def assign_recipes_to_days(filtered_recipes):
@@ -126,8 +120,9 @@ page = st.sidebar.radio("Go to", ["Recipe Planner", "Add Recipes"])
 if page == "Recipe Planner":
     st.title("Weekly Recipe Planner")
 
-    # Load recipes
+    # Load recipes and ingredients database
     recipes = load_recipes(sheet)
+    ingredients_db = load_ingredients_database(sheet)
 
     # Sidebar Filters
     st.sidebar.header("Filter Recipes")
@@ -152,7 +147,7 @@ if page == "Recipe Planner":
     # Generate grocery list
     if st.button("Generate Grocery List"):
         selected_recipes = recipes[recipes["Meal Name"].isin(st.session_state["weekly_plan"].values())]
-        grocery_list = generate_grocery_list(selected_recipes)
+        grocery_list = generate_grocery_list_from_db(ingredients_db, selected_recipes)
         st.write("### Grocery List")
         st.table(grocery_list)
 
