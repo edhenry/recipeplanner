@@ -43,7 +43,6 @@ def add_recipe_to_gsheet(sheet, recipe):
         recipe["Veggies"],
         recipe["Prep Time"],
         recipe["Cook Type"],
-        recipe["Ingredients"],
         recipe["Instructions"]
     ])
 
@@ -115,10 +114,27 @@ def assign_recipes_to_days(filtered_recipes):
 sheet = connect_to_gsheet()
 
 st.sidebar.title("Navigation")
+st.sidebar.info(
+    """
+    **Welcome to the Weekly Dinner Planner!**
+
+    Use the options below to navigate:
+    - **Recipe Planner**: Plan your weekly meals and generate a grocery list.
+    - **Add Recipes**: Add new recipes with ingredients to your database.
+    """
+)
 page = st.sidebar.radio("Go to", ["Recipe Planner", "Add Recipes"])
 
 if page == "Recipe Planner":
     st.title("Weekly Recipe Planner")
+    st.markdown(
+        """
+        ### How to Use the Recipe Planner
+        1. Use the filters in the sidebar to narrow down recipes by cuisine, protein, cook type, or prep time.
+        2. Assign recipes to each day of the week using the dropdowns below.
+        3. Once you've assigned meals, click **"Generate Grocery List"** to create a shopping list for the week.
+        """
+    )
 
     # Load recipes and ingredients database
     recipes = load_recipes(sheet)
@@ -149,24 +165,59 @@ if page == "Recipe Planner":
         selected_recipes = recipes[recipes["Meal Name"].isin(st.session_state["weekly_plan"].values())]
         grocery_list = generate_grocery_list_from_db(ingredients_db, selected_recipes)
         st.write("### Grocery List")
+        st.info(
+            """
+            **Tip**:
+            - The grocery list is automatically generated based on the ingredients for the recipes you assigned to the weekly plan.
+            - Quantities are aggregated across recipes to simplify shopping.
+            """
+        )
         st.table(grocery_list)
 
 elif page == "Add Recipes":
     st.title("Add a New Recipe")
+    st.markdown(
+        """
+        ### How to Add a New Recipe
+        1. Fill out the details for your recipe, including:
+           - **Meal Name**: The name of your dish (e.g., Chicken Stir-Fry).
+           - **Cuisine**: Select the type of cuisine.
+           - **Protein**: Choose the primary protein for the dish.
+           - **Veggies**: List any key vegetables in the recipe (comma-separated).
+           - **Prep Time**: Enter the approximate preparation time in minutes.
+           - **Cook Type**: Select the primary cooking method.
+           - **Instructions**: Add a link to the recipe or a brief description of the steps.
+        2. Use the **Ingredients Section** to specify the ingredients for your recipe:
+           - Enter the ingredient name, quantity, and unit for each ingredient.
+           - Adjust the number of ingredients as needed.
+        3. Click **"Add Recipe"** to save your recipe to the database.
+        """
+    )
 
     # Recipe Input Form
     with st.form("add_recipe_form"):
-        meal_name = st.text_input("Meal Name")
+        meal_name = st.text_input("Meal Name", help="Enter the name of your dish (e.g., Chicken Stir-Fry).")
         cuisine = st.selectbox("Cuisine", ["Mediterranean", "Asian", "Mexican", "Indian", "Italian", "Other"])
         protein = st.selectbox("Protein", ["Chicken", "Beef", "Beans", "Tofu", "Fish", "Other"])
-        veggies = st.text_input("Veggies (comma-separated)")
-        prep_time = st.number_input("Prep Time (minutes)", min_value=1, max_value=120, step=1)
-        cook_type = st.selectbox("Cook Type", ["Stove Top", "Oven", "No Cook", "Grill", "Other"])
-        instructions = st.text_input("Instructions (link or description)")
+        veggies = st.text_input("Veggies (comma-separated)", help="List key vegetables, separated by commas.")
+        prep_time = st.number_input(
+            "Prep Time (minutes)", 
+            min_value=1, max_value=120, step=1, 
+            help="Enter the approximate preparation time for the dish."
+        )
+        cook_type = st.selectbox(
+            "Cook Type", 
+            ["Stove Top", "Oven", "No Cook", "Grill", "Other"], 
+            help="Select the primary cooking method."
+        )
+        instructions = st.text_input("Instructions (link or description)", help="Add a link or brief description.")
 
-        # Ingredients Section
         st.write("### Ingredients")
-        num_ingredients = st.number_input("Number of Ingredients", min_value=1, max_value=20, step=1, value=1)
+        num_ingredients = st.number_input(
+            "Number of Ingredients", 
+            min_value=1, max_value=20, step=1, value=1, 
+            help="Specify the number of ingredients for your recipe."
+        )
 
         ingredient_data = []
         for i in range(num_ingredients):
@@ -179,17 +230,14 @@ elif page == "Add Recipes":
                 unit = st.text_input(f"Unit {i + 1}", key=f"unit_{i}")
             ingredient_data.append({"Ingredient": ingredient, "Quantity": quantity, "Unit": unit})
 
-        # Submit button
         submitted = st.form_submit_button("Add Recipe")
 
     if submitted:
-        # Validate inputs
         if not meal_name:
             st.error("Meal Name is required.")
         elif not any(ingredient["Ingredient"] for ingredient in ingredient_data):
             st.error("At least one ingredient is required.")
         else:
-            # Save to Recipe Database
             recipe = {
                 "Meal Name": meal_name,
                 "Cuisine": cuisine,
@@ -201,15 +249,10 @@ elif page == "Add Recipes":
             }
             add_recipe_to_gsheet(sheet, recipe)
 
-            # Save to Ingredients Database
             worksheet = sheet.worksheet("Ingredients Database")
             for ingredient in ingredient_data:
-                if ingredient["Ingredient"]:  # Only add non-empty ingredients
+                if ingredient["Ingredient"]:
                     worksheet.append_row([
-                        meal_name,  # Link to the Meal Name
-                        ingredient["Ingredient"],
-                        ingredient["Quantity"],
-                        ingredient["Unit"]
+                        meal_name, ingredient["Ingredient"], ingredient["Quantity"], ingredient["Unit"]
                     ])
-
             st.success(f"Recipe '{meal_name}' and its ingredients were added successfully!")
