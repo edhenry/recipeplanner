@@ -1,19 +1,24 @@
 import streamlit as st
 import pandas as pd
-import json
-from google.oauth2.service_account import Credentials
 import gspread
+from google.oauth2.service_account import Credentials
 from collections import defaultdict
+
+# Correct scopes for Google Sheets and Drive API
+SCOPES = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/drive"
+]
 
 # Google Sheets connection
 def connect_to_gsheet():
     service_account_info = st.secrets["google_service_account"]
     creds = Credentials.from_service_account_info(
         service_account_info,
-        scopes=["https://www.googleapis.com/auth/spreadsheets"]
+        scopes=SCOPES  # Use both Sheets and Drive APIs
     )
     client = gspread.authorize(creds)
-    sheet = client.open("Weekly_Dinner_Planner")  # Replace with your Google Sheet name
+    sheet = client.open("Weekly_Dinner_Planner")  # Replace with the exact name of your Google Sheet
     return sheet
 
 # Load recipes from Google Sheet
@@ -38,14 +43,12 @@ def add_recipe_to_gsheet(sheet, recipe):
 
 # Filter recipes based on user inputs
 def filter_recipes(recipes, cuisine_filter, protein_filter, cook_type_filter, prep_time_filter):
-    # Filter by cuisine, protein, and cook type
     filtered_recipes = recipes[
         ((recipes["Cuisine"] == cuisine_filter) | (cuisine_filter == "Any")) &
         ((recipes["Protein"] == protein_filter) | (protein_filter == "Any")) &
         ((recipes["Cook Type"] == cook_type_filter) | (cook_type_filter == "Any"))
     ]
 
-    # Filter by prep time range
     if prep_time_filter == "< 30 mins":
         filtered_recipes = filtered_recipes[filtered_recipes["Prep Time"] < 30]
     elif prep_time_filter == "30-45 mins":
@@ -59,7 +62,6 @@ def filter_recipes(recipes, cuisine_filter, protein_filter, cook_type_filter, pr
 def generate_grocery_list(selected_recipes):
     grocery_list = defaultdict(lambda: defaultdict(float))
 
-    # Parse ingredients and aggregate by item
     for ingredients in selected_recipes["Ingredients"]:
         for ingredient in ingredients.split(", "):
             parts = ingredient.split(" ", 2)
@@ -71,7 +73,6 @@ def generate_grocery_list(selected_recipes):
                     quantity = 0
                 grocery_list[item][unit] += quantity
 
-    # Convert to DataFrame for display
     grocery_list_df = pd.DataFrame([
         {"Ingredient": item, "Unit": unit, "Quantity": qty}
         for item, units in grocery_list.items()
@@ -146,7 +147,6 @@ elif page == "Add Recipes":
         submitted = st.form_submit_button("Add Recipe")
 
     if submitted:
-        # Parse ingredients into a single string
         ingredients_list = ingredients.split("\n")
         recipe = {
             "Meal Name": meal_name,
@@ -159,6 +159,5 @@ elif page == "Add Recipes":
             "Instructions": instructions,
         }
 
-        # Save recipe
         add_recipe_to_gsheet(sheet, recipe)
         st.success(f"Recipe '{meal_name}' added successfully!")
