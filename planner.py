@@ -109,20 +109,28 @@ if page == "Recipe Planner":
     else:
         st.dataframe(filtered_recipes)
 
-    # Assign recipes to days
+# Assign recipes to days with persistent selections
+def assign_recipes_to_days(filtered_recipes):
     st.write("## Assign Recipes to Days")
-    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    weekly_plan = {}
+    
+    # Initialize session state for weekly plan
+    if "weekly_plan" not in st.session_state:
+        st.session_state["weekly_plan"] = {day: "None" for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
 
-    for day in days:
-        selected_recipe = st.selectbox(f"Select a recipe for {day}", ["None"] + filtered_recipes["Meal Name"].tolist())
-        weekly_plan[day] = selected_recipe
+    # Dropdowns for each day
+    for day in st.session_state["weekly_plan"]:
+        selected_recipe = st.selectbox(
+            f"Select a recipe for {day}",
+            options=["None"] + filtered_recipes["Meal Name"].tolist(),
+            index=["None"].index(st.session_state["weekly_plan"][day]) if st.session_state["weekly_plan"][day] in ["None"] else filtered_recipes["Meal Name"].tolist().index(st.session_state["weekly_plan"][day]) + 1,
+            key=f"{day}_recipe"
+        )
+        st.session_state["weekly_plan"][day] = selected_recipe
 
-    # Display weekly plan
+    # Display the weekly plan
     st.write("### Your Weekly Plan")
-    selected_recipes = recipes[recipes["Meal Name"].isin(weekly_plan.values())]
-    st.table(selected_recipes[["Meal Name", "Cuisine", "Protein", "Cook Type", "Prep Time", "Instructions"]])
-
+    st.table(pd.DataFrame(list(st.session_state["weekly_plan"].items()), columns=["Day", "Meal"]))
+    
     # Generate grocery list
     if st.button("Generate Grocery List"):
         grocery_list = generate_grocery_list(selected_recipes)
