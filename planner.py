@@ -13,7 +13,7 @@ def connect_to_gsheet():
         scopes=["https://www.googleapis.com/auth/spreadsheets"]
     )
     client = gspread.authorize(creds)
-    sheet = client.open("Your Google Sheet Name Here")  # Replace with your Google Sheet name
+    sheet = client.open("Weekly_Dinner_Plannerg")  # Replace with your Google Sheet name
     return sheet
 
 # Load recipes from Google Sheet
