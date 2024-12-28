@@ -138,7 +138,6 @@ def browse_recipes(recipes, ingredients_db):
     st.table(scaled_ingredients[["Ingredient", "Quantity", "Unit"]])
 
 # Chat Assistant
-# Chat Assistant
 def chat_interface_with_streamlit_chat(recipes):
     st.title("Recipe Assistant")
 
@@ -166,7 +165,7 @@ def chat_interface_with_streamlit_chat(recipes):
         # Call OpenAI API
         try:
             response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",  # Or "gpt-4" if you prefer
+                model="gpt-4",  # Or "gpt-4" if you prefer
                 messages=messages,
                 temperature=0.7,
             )
@@ -177,8 +176,8 @@ def chat_interface_with_streamlit_chat(recipes):
             with st.chat_message("assistant"):
                 st.markdown(assistant_reply)
 
-        except openai.error.OpenAIError as e:
-            st.error(f"An error occurred: {e}")
+        except Exception as e:
+            st.error(f"An error occurred: {str(e)}")
 
 
 # Main App
