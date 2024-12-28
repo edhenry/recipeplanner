@@ -93,25 +93,34 @@ def scale_ingredients(ingredients_db, meal_name, servings, original_servings):
 # Assign recipes to days with persistent selections
 def assign_recipes_to_days(filtered_recipes):
     st.write("## Assign Recipes to Days")
+    
+    # Initialize session state for weekly plan
     if "weekly_plan" not in st.session_state:
         st.session_state["weekly_plan"] = {day: "None" for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
 
-    for day in st.session_state["weekly_plan"]:
-        current_selection = st.session_state["weekly_plan"][day]
-        dropdown_options = ["None"] + filtered_recipes["Meal Name"].tolist()
-        if current_selection not in dropdown_options and current_selection != "None":
-            dropdown_options.append(current_selection)
-        selected_recipe = st.selectbox(
-            f"Select a recipe for {day}",
-            options=dropdown_options,
-            index=dropdown_options.index(current_selection),
-            key=f"{day}_recipe"
-        )
-        st.session_state["weekly_plan"][day] = selected_recipe
+    # Multi-column layout
+    days = list(st.session_state["weekly_plan"].keys())
+    columns = st.columns(len(days))  # Create one column per day
 
-    st.write("### Your Weekly Plan")
+    for i, day in enumerate(days):
+        with columns[i]:
+            st.write(f"### {day}")
+            current_selection = st.session_state["weekly_plan"][day]
+            dropdown_options = ["None"] + filtered_recipes["Meal Name"].tolist()
+            if current_selection not in dropdown_options and current_selection != "None":
+                dropdown_options.append(current_selection)
+            selected_recipe = st.selectbox(
+                f"Select a recipe for {day}",
+                options=dropdown_options,
+                index=dropdown_options.index(current_selection),
+                key=f"{day}_recipe"
+            )
+            st.session_state["weekly_plan"][day] = selected_recipe
+
+    # Display the weekly plan in a table for summary
+    st.write("### Weekly Plan Summary")
     st.table(pd.DataFrame(list(st.session_state["weekly_plan"].items()), columns=["Day", "Meal"]).reset_index(drop=True))
-
+    
 # Browse Recipes Page
 def browse_recipes(recipes, ingredients_db):
     st.title("Browse Recipes")
