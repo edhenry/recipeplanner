@@ -274,7 +274,7 @@ st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Recipe Planner", "Add Recipes", "Browse Recipes", "Chat Assistant"])
 
 if page == "Recipe Planner":
-    recipe_planner(recipes)
+    recipe_planner(recipes, ingredients_db=ingredients_db)
 elif page == "Add Recipes":
     add_recipes(sheet)
 elif page == "Browse Recipes":
