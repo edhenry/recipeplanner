@@ -138,35 +138,48 @@ def browse_recipes(recipes, ingredients_db):
     st.table(scaled_ingredients[["Ingredient", "Quantity", "Unit"]])
 
 # Chat Assistant
+# Chat Assistant
 def chat_interface_with_streamlit_chat(recipes):
     st.title("Recipe Assistant")
 
-    openai.api_key = st.secrets["general"]["openai_api_key"]
+    # Inject OpenAI API key
+    openai.api_key = st.secrets["openai_api_key"]
 
+    # Initialize session state for messages
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
+    # Display chat history
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
+    # Handle user input
     if user_input := st.chat_input("What would you like to know?"):
         st.session_state.messages.append({"role": "user", "content": user_input})
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        prompt = f"You are a recipe assistant. Here is a user's question:\n\n{user_input}"
-        response = openai.Completion.create(
-            model="gpt-3.5-turbo",
-            prompt=prompt,
-            max_tokens=200,
-            temperature=0.7
-        )
-        assistant_reply = response.choices[0].text.strip()
+        # Prepare chat history for the OpenAI API
+        messages = [{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.messages]
 
-        st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
-        with st.chat_message("assistant"):
-            st.markdown(assistant_reply)
+        # Call OpenAI API
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",  # Or "gpt-4" if you prefer
+                messages=messages,
+                temperature=0.7,
+            )
+            assistant_reply = response["choices"][0]["message"]["content"]
+
+            # Display assistant's response
+            st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
+            with st.chat_message("assistant"):
+                st.markdown(assistant_reply)
+
+        except openai.error.OpenAIError as e:
+            st.error(f"An error occurred: {e}")
+            
 
 # Main App
 sheet = connect_to_gsheet()
