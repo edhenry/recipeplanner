@@ -140,8 +140,7 @@ def browse_recipes(recipes, ingredients_db):
     st.write("### Ingredients")
     st.table(scaled_ingredients[["Ingredient", "Quantity", "Unit"]])
 
-# Chat Assistant with Debug Flag
-def chat_interface_with_streamlit_chat(recipes):
+def chat_interface_with_streamlit_chat(recipes, ingredients_db):
     st.title("Recipe Assistant")
 
     # Inject OpenAI API key
@@ -165,12 +164,20 @@ def chat_interface_with_streamlit_chat(recipes):
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        # Format all recipes for context
+        # Format all recipes with ingredients dynamically fetched from the Ingredients Database
+        def get_ingredients(meal_name):
+            """Fetch ingredients for a given meal from the Ingredients Database."""
+            meal_ingredients = ingredients_db[ingredients_db["Meal Name"] == meal_name]
+            return ", ".join(
+                f"{row['Quantity']} {row['Unit']} {row['Ingredient']}".strip()
+                for _, row in meal_ingredients.iterrows()
+            )
+
         formatted_recipes = "\n".join(
             f"Recipe: {recipe['Meal Name']}\n"
             f"Cuisine: {recipe['Cuisine']}\n"
             f"Prep Time: {recipe['Prep Time']} minutes\n"
-            f"Ingredients: {recipe['Ingredients']}\n"
+            f"Ingredients: {get_ingredients(recipe['Meal Name'])}\n"
             f"Instructions: {recipe['Instructions']}"
             for _, recipe in recipes.iterrows()
         )
