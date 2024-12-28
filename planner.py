@@ -2,7 +2,9 @@ import streamlit as st
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=st.secrets["general"]["openai_api_key"])
 
 # Google Sheets and OpenAI configurations
 SCOPES = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -142,7 +144,6 @@ def chat_interface_with_streamlit_chat(recipes):
     st.title("Recipe Assistant")
 
     # Inject OpenAI API key
-    openai.api_key = st.secrets["general"]["openai_api_key"]
 
     # Initialize session state for messages
     if "messages" not in st.session_state:
@@ -164,12 +165,10 @@ def chat_interface_with_streamlit_chat(recipes):
 
         # Call OpenAI API
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4",  # Or "gpt-4" if you prefer
-                messages=messages,
-                temperature=0.7,
-            )
-            assistant_reply = response["choices"][0]["message"]["content"]
+            response = client.chat.completions.create(model="gpt-4",  # Or "gpt-4" if you prefer
+            messages=messages,
+            temperature=0.7)
+            assistant_reply = response.choices[0].message.content
 
             # Display assistant's response
             st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
