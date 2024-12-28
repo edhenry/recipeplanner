@@ -4,6 +4,19 @@ import gspread
 from google.oauth2.service_account import Credentials
 from collections import defaultdict
 
+# Custom CSS to disable word wrapping in Streamlit tables
+st.markdown(
+    """
+    <style>
+    table {
+        word-wrap: normal;
+        white-space: nowrap;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Correct scopes for Google Sheets and Drive API
 SCOPES = [
     "https://spreadsheets.google.com/feeds",
