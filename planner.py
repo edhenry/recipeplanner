@@ -235,4 +235,4 @@ elif page == "Add Recipes":
 elif page == "Browse Recipes":
     browse_recipes(recipes, ingredients_db)
 elif page == "Chat Assistant":
-    chat_interface_with_streamlit_chat(recipes, ingredients_db)
+    chat_interface_with_streamlit_chat(recipes=recipes, ingredients_db=ingredients_db)
