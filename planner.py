@@ -60,10 +60,12 @@ def recipe_planner(recipes):
 
     # Function to get options for a day
     def get_options_for_day(day):
+        """Ensure the selected recipe for the day is included in the options."""
         selected_recipe = st.session_state["weekly_plan"].get(day, "None")
         options = ["None"] + filtered_recipes["Meal Name"].tolist()
+        # Include the currently selected recipe, even if it's not in the filtered list
         if selected_recipe not in options:
-            options.append(selected_recipe)  # Ensure the selected recipe is included
+            options.append(selected_recipe)
         return options
 
     # Assign Recipes to Days with improved layout
