@@ -5,10 +5,6 @@ from google.oauth2.service_account import Credentials
 from openai import OpenAI
 from openai import OpenAI
 
-client = OpenAI(api_key=st.secrets["general"]["openai_api_key"])
-
-client = OpenAI(api_key=st.secrets["general"]["openai_api_key"])
-
 # Google Sheets and OpenAI configurations
 SCOPES = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
