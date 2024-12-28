@@ -43,6 +43,9 @@ def recipe_planner(recipes, ingredients_db):
         3. Click **Generate Grocery List** to create a shopping list.
     """)
 
+    # Ensure the Prep Time column is numeric
+    recipes["Prep Time"] = pd.to_numeric(recipes["Prep Time"], errors="coerce")
+
     # Initialize session state for weekly plan
     if "weekly_plan" not in st.session_state:
         st.session_state["weekly_plan"] = {day: "None" for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
@@ -65,7 +68,7 @@ def recipe_planner(recipes, ingredients_db):
     elif prep_time_filter == ">45 min":
         prep_time_condition = recipes["Prep Time"] > 45
     else:
-        prep_time_condition = True  # No filter applied for "Any"
+        prep_time_condition = True  # Include all recipes for "Any"
 
     # Filter Recipes
     filtered_recipes = recipes[
@@ -74,6 +77,11 @@ def recipe_planner(recipes, ingredients_db):
         ((recipes["Cook Type"] == cook_type_filter) | (cook_type_filter == "Any")) &
         prep_time_condition
     ]
+
+    # Debugging: Display the filtered recipes for verification
+    if st.sidebar.checkbox("Show Debug Info"):
+        st.write("Filtered Recipes:")
+        st.dataframe(filtered_recipes)
 
     # Function to get options for a day
     def get_options_for_day(day):
