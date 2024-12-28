@@ -58,15 +58,23 @@ def recipe_planner(recipes):
         ((recipes["Cook Type"] == cook_type_filter) | (cook_type_filter == "Any"))
     ]
 
-    # Assign Recipes to Days with a better layout
+    # Function to get options for a day
+    def get_options_for_day(day):
+        selected_recipe = st.session_state["weekly_plan"].get(day, "None")
+        options = ["None"] + filtered_recipes["Meal Name"].tolist()
+        if selected_recipe not in options:
+            options.append(selected_recipe)  # Ensure the selected recipe is included
+        return options
+
+    # Assign Recipes to Days with improved layout
     st.write("## Assign Recipes to Days")
-    
+
     # First row: Monday, Tuesday, Wednesday
     row1 = st.columns(3)
     for i, day in enumerate(["Monday", "Tuesday", "Wednesday"]):
         with row1[i]:
             st.write(f"### {day}")
-            options = ["None"] + filtered_recipes["Meal Name"].tolist()
+            options = get_options_for_day(day)
             st.session_state["weekly_plan"][day] = st.selectbox(
                 f"Select recipe for {day}",
                 options=options,
@@ -78,7 +86,7 @@ def recipe_planner(recipes):
     for i, day in enumerate(["Thursday", "Friday", "Saturday"]):
         with row2[i]:
             st.write(f"### {day}")
-            options = ["None"] + filtered_recipes["Meal Name"].tolist()
+            options = get_options_for_day(day)
             st.session_state["weekly_plan"][day] = st.selectbox(
                 f"Select recipe for {day}",
                 options=options,
@@ -87,7 +95,7 @@ def recipe_planner(recipes):
 
     # Third row: Sunday
     st.write("### Sunday")
-    options = ["None"] + filtered_recipes["Meal Name"].tolist()
+    options = get_options_for_day("Sunday")
     st.session_state["weekly_plan"]["Sunday"] = st.selectbox(
         "Select recipe for Sunday",
         options=options,
