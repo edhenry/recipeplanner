@@ -140,6 +140,13 @@ def browse_recipes(recipes, ingredients_db):
     st.write("### Ingredients")
     st.table(scaled_ingredients[["Ingredient", "Quantity", "Unit"]])
 
+def get_ingredients(meal_name):
+    meal_ingredients = ingredients_db[ingredients_db["Meal Name"] == meal_name]
+    return ", ".join(
+        f"{row['Quantity']} {row['Unit']} {row['Ingredient']}".strip()
+        for _, row in meal_ingredients.iterrows()
+    )
+
 def chat_interface_with_streamlit_chat(recipes, ingredients_db):
     st.title("Recipe Assistant")
 
@@ -228,4 +235,4 @@ elif page == "Add Recipes":
 elif page == "Browse Recipes":
     browse_recipes(recipes, ingredients_db)
 elif page == "Chat Assistant":
-    chat_interface_with_streamlit_chat(recipes)
+    chat_interface_with_streamlit_chat(recipes, ingredients_db)
