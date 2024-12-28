@@ -3,6 +3,7 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 from openai import OpenAI
+import openai
 
 client = OpenAI(api_key=st.secrets["general"]["openai_api_key"])
 
