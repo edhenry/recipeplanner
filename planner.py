@@ -143,7 +143,7 @@ def chat_interface_with_streamlit_chat(recipes):
     st.title("Recipe Assistant")
 
     # Inject OpenAI API key
-    openai.api_key = st.secrets["openai_api_key"]
+    openai.api_key = st.secrets["general"]["openai_api_key"]
 
     # Initialize session state for messages
     if "messages" not in st.session_state:
@@ -179,7 +179,7 @@ def chat_interface_with_streamlit_chat(recipes):
 
         except openai.error.OpenAIError as e:
             st.error(f"An error occurred: {e}")
-            
+
 
 # Main App
 sheet = connect_to_gsheet()
