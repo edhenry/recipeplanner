@@ -267,7 +267,7 @@ def chat_interface_with_streamlit_chat(recipes, ingredients_db):
 
         # Prepare chat history with all recipes
         messages = [
-            {"role": "system", "content": "You are a helpful recipe assistant."},
+            {"role": "system", "content": "You are a helpful recipe assistant. When asked to provide lists of recipes, make sure to return them as a list for proper human readability."},
             {"role": "system", "content": f"Here are all the recipes in the database:\n\n{formatted_recipes}"},
         ]
         messages += [{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.messages]
