@@ -47,15 +47,32 @@ def recipe_planner(recipes, ingredients_db):
     if "weekly_plan" not in st.session_state:
         st.session_state["weekly_plan"] = {day: "None" for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
 
-    # Filter Recipes
+    # Sidebar Filters
+    st.sidebar.write("### Filters")
     cuisine_filter = st.sidebar.selectbox("Cuisine", ["Any"] + recipes["Cuisine"].unique().tolist())
     protein_filter = st.sidebar.selectbox("Protein", ["Any"] + recipes["Protein"].unique().tolist())
     cook_type_filter = st.sidebar.selectbox("Cook Type", ["Any"] + recipes["Cook Type"].unique().tolist())
+    prep_time_filter = st.sidebar.selectbox(
+        "Prep Time",
+        ["Any", "<30 min", ">30 min <=45 min", ">45 min"]
+    )
 
+    # Convert Prep Time Filter to Conditions
+    if prep_time_filter == "<30 min":
+        prep_time_condition = recipes["Prep Time"] < 30
+    elif prep_time_filter == ">30 min <=45 min":
+        prep_time_condition = (recipes["Prep Time"] > 30) & (recipes["Prep Time"] <= 45)
+    elif prep_time_filter == ">45 min":
+        prep_time_condition = recipes["Prep Time"] > 45
+    else:
+        prep_time_condition = True  # No filter applied for "Any"
+
+    # Filter Recipes
     filtered_recipes = recipes[
         ((recipes["Cuisine"] == cuisine_filter) | (cuisine_filter == "Any")) &
         ((recipes["Protein"] == protein_filter) | (protein_filter == "Any")) &
-        ((recipes["Cook Type"] == cook_type_filter) | (cook_type_filter == "Any"))
+        ((recipes["Cook Type"] == cook_type_filter) | (cook_type_filter == "Any")) &
+        prep_time_condition
     ]
 
     # Function to get options for a day
