@@ -3,7 +3,9 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 from openai import OpenAI
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=st.secrets["general"]["openai_api_key"])
 
 client = OpenAI(api_key=st.secrets["general"]["openai_api_key"])
 
@@ -151,7 +153,6 @@ def chat_interface_with_streamlit_chat(recipes, ingredients_db):
     st.title("Recipe Assistant")
 
     # Inject OpenAI API key
-    openai.api_key = st.secrets["general"]["openai_api_key"]
 
     # Debug mode toggle
     debug_mode = st.sidebar.checkbox("Enable Debug Mode")
@@ -204,12 +205,10 @@ def chat_interface_with_streamlit_chat(recipes, ingredients_db):
 
         # Call OpenAI API
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",  # Or "gpt-4" if preferred
-                messages=messages,
-                temperature=0.7,
-            )
-            assistant_reply = response["choices"][0]["message"]["content"]
+            response = client.chat.completions.create(model="gpt-3.5-turbo",  # Or "gpt-4" if preferred
+            messages=messages,
+            temperature=0.7)
+            assistant_reply = response.choices[0].message.content
 
             # Display assistant's response
             st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
