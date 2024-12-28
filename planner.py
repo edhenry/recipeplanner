@@ -34,7 +34,6 @@ def scale_ingredients(ingredients_db, meal_name, servings, original_servings):
     ingredients["Quantity"] = ingredients["Quantity"] * (servings / original_servings)
     return ingredients
 
-# Recipe Planner
 def recipe_planner(recipes):
     st.title("Weekly Recipe Planner")
     st.markdown("""
@@ -59,11 +58,13 @@ def recipe_planner(recipes):
         ((recipes["Cook Type"] == cook_type_filter) | (cook_type_filter == "Any"))
     ]
 
-    # Assign Recipes to Days
+    # Assign Recipes to Days with a better layout
     st.write("## Assign Recipes to Days")
-    columns = st.columns(7)
-    for i, day in enumerate(st.session_state["weekly_plan"].keys()):
-        with columns[i]:
+    
+    # First row: Monday, Tuesday, Wednesday
+    row1 = st.columns(3)
+    for i, day in enumerate(["Monday", "Tuesday", "Wednesday"]):
+        with row1[i]:
             st.write(f"### {day}")
             options = ["None"] + filtered_recipes["Meal Name"].tolist()
             st.session_state["weekly_plan"][day] = st.selectbox(
@@ -71,6 +72,27 @@ def recipe_planner(recipes):
                 options=options,
                 index=options.index(st.session_state["weekly_plan"].get(day, "None"))
             )
+
+    # Second row: Thursday, Friday, Saturday
+    row2 = st.columns(3)
+    for i, day in enumerate(["Thursday", "Friday", "Saturday"]):
+        with row2[i]:
+            st.write(f"### {day}")
+            options = ["None"] + filtered_recipes["Meal Name"].tolist()
+            st.session_state["weekly_plan"][day] = st.selectbox(
+                f"Select recipe for {day}",
+                options=options,
+                index=options.index(st.session_state["weekly_plan"].get(day, "None"))
+            )
+
+    # Third row: Sunday
+    st.write("### Sunday")
+    options = ["None"] + filtered_recipes["Meal Name"].tolist()
+    st.session_state["weekly_plan"]["Sunday"] = st.selectbox(
+        "Select recipe for Sunday",
+        options=options,
+        index=options.index(st.session_state["weekly_plan"].get("Sunday", "None"))
+    )
 
     # Display Weekly Plan
     st.write("### Weekly Plan")
