@@ -48,16 +48,59 @@ def load_ingredients_database(sheet):
 
 # Add a new recipe to Google Sheet
 def add_recipe_to_gsheet(sheet, recipe):
-    worksheet = sheet.worksheet("Recipe Database")
-    worksheet.append_row([
-        recipe["Meal Name"],
-        recipe["Cuisine"],
-        recipe["Protein"],
-        recipe["Veggies"],
-        recipe["Prep Time"],
-        recipe["Cook Type"],
-        recipe["Instructions"]
-    ])
+    # Load valid units from the Google Sheet
+    valid_units_sheet = sheet.worksheet("Valid Units")
+    valid_units = valid_units_sheet.col_values(1)  # Assume units are in column A
+
+    with st.form("add_recipe_form"):
+        meal_name = st.text_input("Meal Name")
+        cuisine = st.selectbox("Cuisine", ["Mediterranean", "Asian", "Mexican", "Indian", "Italian", "Other"])
+        protein = st.selectbox("Protein", ["Chicken", "Beef", "Beans", "Tofu", "Fish", "Other"])
+        veggies = st.text_input("Veggies (comma-separated)")
+        prep_time = st.number_input("Prep Time (minutes)", min_value=1, max_value=120, step=1)
+        cook_type = st.selectbox("Cook Type", ["Stove Top", "Oven", "No Cook", "Grill", "Other"])
+        instructions = st.text_input("Instructions (link or description)")
+        num_ingredients = st.number_input("Number of Ingredients", min_value=1, max_value=20, value=1, step=1)
+
+        ingredient_data = []
+        for i in range(num_ingredients):
+            col1, col2, col3 = st.columns(3)
+            ingredient = col1.text_input(f"Ingredient {i + 1}", key=f"ingredient_{i}")
+            quantity = col2.number_input(f"Quantity {i + 1}", min_value=0.0, step=0.1, key=f"quantity_{i}")
+            unit = col3.selectbox(
+                f"Unit {i + 1}",
+                valid_units,
+                key=f"unit_{i}",
+                help="Select a valid unit from the dropdown."
+            )
+            ingredient_data.append({"Ingredient": ingredient, "Quantity": quantity, "Unit": unit})
+
+        submitted = st.form_submit_button("Add Recipe")
+
+    if submitted:
+        if not meal_name:
+            st.error("Meal Name is required.")
+        elif not any(ingredient["Ingredient"] for ingredient in ingredient_data):
+            st.error("At least one ingredient is required.")
+        else:
+            recipe = {
+                "Meal Name": meal_name,
+                "Cuisine": cuisine,
+                "Protein": protein,
+                "Veggies": veggies,
+                "Prep Time": prep_time,
+                "Cook Type": cook_type,
+                "Instructions": instructions
+            }
+            add_recipe_to_gsheet(sheet, recipe)
+
+            ingredients_sheet = sheet.worksheet("Ingredients Database")
+            for ingredient in ingredient_data:
+                if ingredient["Ingredient"]:
+                    ingredients_sheet.append_row([
+                        meal_name, ingredient["Ingredient"], ingredient["Quantity"], ingredient["Unit"]
+                    ])
+            st.success(f"Recipe '{meal_name}' added successfully!")
 
 # Filter recipes based on user inputs
 def filter_recipes(recipes, cuisine_filter, protein_filter, cook_type_filter, prep_time_filter):
@@ -123,7 +166,7 @@ def assign_recipes_to_days(filtered_recipes):
     # Display the weekly plan summary table below the layout
     st.write("### Weekly Plan Summary")
     st.table(pd.DataFrame(list(st.session_state["weekly_plan"].items()), columns=["Day", "Meal"]).reset_index(drop=True))
-    
+
 # Browse Recipes Page
 def browse_recipes(recipes, ingredients_db):
     st.title("Browse Recipes")
