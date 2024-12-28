@@ -141,7 +141,7 @@ def browse_recipes(recipes, ingredients_db):
         st.image(
             "https://via.placeholder.com/150",
             caption="Recipe Image (Placeholder)",
-            use_column_width=True
+            use_container_width=True
         )
 
     st.write("### Ingredients")
