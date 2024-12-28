@@ -46,6 +46,7 @@ def recipe_planner(recipes, ingredients_db):
     # Clean Prep Time Column
     recipes["Prep Time"] = (
         recipes["Prep Time"]
+        .astype(str)  # Convert to string to avoid .str accessor issues
         .str.extract(r"(\d+)", expand=False)  # Extract numeric values
         .astype(float)  # Convert to numeric
     )
