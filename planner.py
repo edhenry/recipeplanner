@@ -34,7 +34,7 @@ def scale_ingredients(ingredients_db, meal_name, servings, original_servings):
     ingredients["Quantity"] = ingredients["Quantity"] * (servings / original_servings)
     return ingredients
 
-def recipe_planner(recipes):
+def recipe_planner(recipes, ingredients_db):
     st.title("Weekly Recipe Planner")
     st.markdown("""
         ### How to Use
@@ -60,10 +60,8 @@ def recipe_planner(recipes):
 
     # Function to get options for a day
     def get_options_for_day(day):
-        """Ensure the selected recipe for the day is included in the options."""
         selected_recipe = st.session_state["weekly_plan"].get(day, "None")
         options = ["None"] + filtered_recipes["Meal Name"].tolist()
-        # Include the currently selected recipe, even if it's not in the filtered list
         if selected_recipe not in options:
             options.append(selected_recipe)
         return options
@@ -107,6 +105,22 @@ def recipe_planner(recipes):
     # Display Weekly Plan
     st.write("### Weekly Plan")
     st.table(pd.DataFrame(list(st.session_state["weekly_plan"].items()), columns=["Day", "Meal"]))
+
+    # Generate Grocery List Button
+    if st.button("Generate Grocery List"):
+        selected_recipes = [meal for meal in st.session_state["weekly_plan"].values() if meal != "None"]
+        
+        if not selected_recipes:
+            st.warning("No recipes selected. Please assign recipes to generate a shopping list.")
+            return
+
+        # Filter ingredients for selected recipes
+        shopping_list = ingredients_db[ingredients_db["Meal Name"].isin(selected_recipes)]
+        aggregated_ingredients = shopping_list.groupby(["Ingredient", "Unit"], as_index=False).agg({"Quantity": "sum"})
+
+        # Display shopping list
+        st.write("## Grocery List")
+        st.table(aggregated_ingredients.rename(columns={"Ingredient": "Item", "Quantity": "Total Quantity"}))
 
 # Add Recipes
 def add_recipes(sheet):
