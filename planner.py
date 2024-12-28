@@ -139,11 +139,15 @@ def browse_recipes(recipes, ingredients_db):
     st.write("### Ingredients")
     st.table(scaled_ingredients[["Ingredient", "Quantity", "Unit"]])
 
-# Chat Assistant
+# Chat Assistant with Debug Flag
 def chat_interface_with_streamlit_chat(recipes):
     st.title("Recipe Assistant")
 
     # Inject OpenAI API key
+    openai.api_key = st.secrets["openai_api_key"]
+
+    # Debug mode toggle
+    debug_mode = st.sidebar.checkbox("Enable Debug Mode")
 
     # Initialize session state for messages
     if "messages" not in st.session_state:
@@ -160,15 +164,37 @@ def chat_interface_with_streamlit_chat(recipes):
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        # Prepare chat history for the OpenAI API
-        messages = [{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.messages]
+        # Format all recipes for context
+        formatted_recipes = "\n".join(
+            f"Recipe: {recipe['Meal Name']}\n"
+            f"Cuisine: {recipe['Cuisine']}\n"
+            f"Prep Time: {recipe['Prep Time']} minutes\n"
+            f"Ingredients: {recipe['Ingredients']}\n"
+            f"Instructions: {recipe['Instructions']}"
+            for _, recipe in recipes.iterrows()
+        )
+
+        # Prepare chat history with all recipes
+        messages = [
+            {"role": "system", "content": "You are a helpful recipe assistant."},
+            {"role": "system", "content": f"Here are all the recipes in the database:\n\n{formatted_recipes}"},
+        ]
+        messages += [{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.messages]
+
+        # Display the generated prompt in debug mode
+        if debug_mode:
+            st.write("### Debug: Generated Prompt")
+            for message in messages:
+                st.markdown(f"**{message['role'].capitalize()}**: {message['content']}")
 
         # Call OpenAI API
         try:
-            response = client.chat.completions.create(model="gpt-4",  # Or "gpt-4" if you prefer
-            messages=messages,
-            temperature=0.7)
-            assistant_reply = response.choices[0].message.content
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",  # Or "gpt-4" if preferred
+                messages=messages,
+                temperature=0.7,
+            )
+            assistant_reply = response["choices"][0]["message"]["content"]
 
             # Display assistant's response
             st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
